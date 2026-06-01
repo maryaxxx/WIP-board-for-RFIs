@@ -142,6 +142,7 @@ input[type=text]:focus,select:focus{outline:2px solid #378ADD;outline-offset:-1p
 const MASTER_KEY = '$2a$10$oG4VQqVME8IEhnOJ84fBv.qfcVZn99cS8RcY79KrL.QU0nNyWpiy2';
 const BIN_NAME   = 'kb_investigations_board';
 const LS_KEY     = 'kb_bin_id_v1';
+const FIXED_BIN_ID = '6a1d7ee8ddf5aa59f77fb593';
 const BASE       = 'https://api.jsonbin.io/v3/b';
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -197,37 +198,11 @@ function showErr(msg) {
 
 // Find or create the shared bin
 async function getBinId() {
-  const cached = localStorage.getItem(LS_KEY);
-  if (cached) return cached;
-
-  // Search existing bins for one with our name
-  try {
-    const r = await fetch(BASE, {headers: apiHeaders()});
-    if (r.ok) {
-      const d = await r.json();
-      const found = (d.result || []).find(b => b.snippetMeta?.name === BIN_NAME);
-      if (found?.record) {
-        localStorage.setItem(LS_KEY, found.record);
-        return found.record;
-      }
-    }
-  } catch(e) {}
-
-  // Create fresh bin with default tickets
-  try {
-    const r2 = await fetch(BASE, {
-      method: 'POST',
-      headers: apiHeaders({'X-Bin-Name': BIN_NAME, 'X-Bin-Private': 'true'}),
-      body: JSON.stringify({tickets: DEFAULTS, ts: Date.now(), nextId: 200})
-    });
-    if (r2.ok) {
-      const d2 = await r2.json();
-      const id = d2.metadata?.id;
-      if (id) { localStorage.setItem(LS_KEY, id); return id; }
-    }
-  } catch(e) {}
-
-  return null;
+  if (FIXED_BIN_ID) {
+    localStorage.setItem(LS_KEY, FIXED_BIN_ID);
+    return FIXED_BIN_ID;
+  }
+  return localStorage.getItem(LS_KEY);
 }
 
 async function loadBin(id) {
